@@ -1,0 +1,13 @@
+version: '3'                                                                                                                          
+services:
+  webapper:
+    image: rchicoli/webapper
+    ports:
+      - "8080:8080"
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
