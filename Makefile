@@ -1,21 +1,34 @@
-NAME = rchicoli/app
-VERSION = 0.0.1-dev
-WORKDIR = /go/src/app
-BINARY = app
 
-.PHONY: all build tag release
+APP_OWNER     = rchicoli
+APP_NAME      = webapper
+APP_VERSION  ?= latest
+
+DOCKER_IMAGE  = $(APP_OWNER)/$(APP_NAME)
+WORKDIR 	  = /go/src/app
+
+.PHONY: all binary build clean
 
 all: binary build
 
 binary:
-	docker run --rm -ti -v $(PWD):$(WORKDIR) -w $(WORKDIR) golang:1.7.1-alpine go build -v
+	docker run --rm -v $(PWD):$(WORKDIR) -w $(WORKDIR) golang:1.7.1-alpine go build -ldflags '-extldflags "-static"' -o $(APP_NAME) main.go
 
 build:
-	docker build --rm -t $(NAME):$(VERSION) .
+	docker build --rm --build-arg APP_NAME=$(APP_NAME) -t $(DOCKER_IMAGE):$(APP_VERSION) .
+
+run:
+	docker run --rm -ti $(DOCKER_IMAGE):$(APP_VERSION) /bin/sh
+
+push:
+	docker push $(DOCKER_IMAGE):$(APP_VERSION)
 
 tag:
-	docker tag $(NAME):$(VERSION) $(NAME):latest
+	docker tag $(DOCKER_IMAGE):$(APP_VERSION) $(DOCKER_IMAGE):latest
 
 release: tag
-        docker push $(NAME):$(VERSION)
-        docker push $(NAME):latest
+	docker push $(DOCKER_IMAGE):$(APP_VERSION)
+	docker push $(DOCKER_IMAGE):latest
+
+clean:
+	rm $(APP_NAME)
+	docker rmi $(DOCKER_IMAGE):$(APP_VERSION)
