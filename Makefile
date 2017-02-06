@@ -6,7 +6,7 @@ APP_VERSION  ?= latest
 DOCKER_IMAGE  = $(APP_OWNER)/$(APP_NAME)
 WORKDIR 	  = /go/src/app
 
-.PHONY: all binary build clean
+.PHONY: all binary build clean release run tag
 
 all: binary build
 
@@ -17,6 +17,9 @@ build:
 	docker build --rm --build-arg APP_NAME=$(APP_NAME) -t $(DOCKER_IMAGE):$(APP_VERSION) .
 
 run:
+	docker run --rm $(DOCKER_IMAGE):$(APP_VERSION)
+
+attach:
 	docker run --rm -ti $(DOCKER_IMAGE):$(APP_VERSION) /bin/sh
 
 push:
@@ -30,5 +33,5 @@ release: tag
 	docker push $(DOCKER_IMAGE):latest
 
 clean:
-	rm $(APP_NAME)
+	rm -f $(APP_NAME)
 	docker rmi $(DOCKER_IMAGE):$(APP_VERSION)
