@@ -8,7 +8,7 @@ WORKDIR 	  = /go/src/app
 
 .PHONY: all binary build clean release run tag
 
-all: binary build
+all: test binary build
 
 binary:
 	docker run --rm -v $(PWD):$(WORKDIR) -w $(WORKDIR) golang:1.7.1-alpine go build -ldflags '-extldflags "-static"' -o $(APP_NAME) main.go
@@ -27,6 +27,9 @@ push:
 
 tag:
 	docker tag $(DOCKER_IMAGE):$(APP_VERSION) $(DOCKER_IMAGE):latest
+
+test:
+	go test -v
 
 release: tag
 	docker push $(DOCKER_IMAGE):$(APP_VERSION)

@@ -33,34 +33,34 @@ Endpoints:
 `
 )
 
-func endpoints(w http.ResponseWriter, r *http.Request) {
+func endpointHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", usage)
 	log.Printf("%s", r.URL.Path)
 }
 
-func hostname(w http.ResponseWriter, r *http.Request) {
+func hostnameHandler(w http.ResponseWriter, r *http.Request) {
 	hostname, _ := os.Hostname()
 	fmt.Fprintf(w, "Hostname: %s", hostname)
 	log.Printf("%s", r.URL.Path)
 }
 
-func cow(w http.ResponseWriter, r *http.Request) {
+func cowsayHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", cowsay)
 	log.Printf("%s", r.URL.Path)
 
 }
 
-func health(w http.ResponseWriter, r *http.Request) {
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "OK")
 	log.Printf("%s", r.URL.Path)
 }
 
 func main() {
 
-	http.HandleFunc("/", endpoints)
-	http.HandleFunc("/cow", cow)
-	http.HandleFunc("/health", health)
-	http.HandleFunc("/hostname", hostname)
+	http.HandleFunc("/", endpointHandler)
+	http.HandleFunc("/cow", cowsayHandler)
+	http.HandleFunc("/health", healthCheckHandler)
+	http.HandleFunc("/hostname", hostnameHandler)
 
 	http.ListenAndServe(":8080", nil)
 
