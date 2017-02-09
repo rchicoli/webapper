@@ -45,7 +45,6 @@ INTERNAL_LOAD_BALANCE_IP=$(docker-machine config swarm1| sed -nr 's#-H=tcp://(.*
 
 while true; do
     curl "http://${INTERNAL_LOAD_BALANCE_IP}:8080/hostname"
-    echo ""
     sleep 3
 done
 ```

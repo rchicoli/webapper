@@ -9,21 +9,28 @@ import (
 
 const (
 	usage = `
-    Endpoints:
-        /            show this response message
-        /health      check health status
-        /hostname    display hostname`
+Usage: curl http://127.0.0.1:8080/[endpoint]
+
+    Perform HTTP request against the API for a specific action. 
+
+Endpoints:
+
+    /            show this message
+    /health      check health status
+    /hostname    display hostname
+`
 
 	cowsay = `
-      _______________________________________
-    /  You are only young once, but you can   \
-    \  stay immature indefinitely.            /
-      ---------------------------------------
-            \   ^__^
-             \  (oo)\_______
-                (__)\       )\/\
-                     ||----w |
-                     ||     ||`
+ _______________________________________
+|  You are only young once, but you can |
+|  stay immature indefinitely.          |
+ ---------------------------------------
+    \   ^__^
+     \  (oo)\_______
+        (__)\       )\/\
+            ||----w |
+            ||     ||
+`
 )
 
 func endpoints(w http.ResponseWriter, r *http.Request) {
