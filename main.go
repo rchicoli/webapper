@@ -40,7 +40,7 @@ func endpointHandler(w http.ResponseWriter, r *http.Request) {
 
 func hostnameHandler(w http.ResponseWriter, r *http.Request) {
 	hostname, _ := os.Hostname()
-	fmt.Fprintf(w, "Hostname: %s", hostname)
+	fmt.Fprintf(w, "Hostname: %s\n", hostname)
 	log.Printf("%s", r.URL.Path)
 }
 
