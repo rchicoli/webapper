@@ -3,11 +3,27 @@ services:
   webapper:
     image: rchicoli/webapper:0.0.1
     ports:
-      - "8080:8080"
+      - '8080:8080'
     deploy:
       replicas: 2
+      labels: 
+        local.home.app: webapper
       update_config:
-        parallelism: 2
+        parallelism: 1
         delay: 10s
+        failure_action: pause
       restart_policy:
         condition: on-failure
+        max_attempts: 3
+        delay: 10s
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 150M
+        reservations:
+          cpus: '0.01'
+          memory: 120M
+      placement:
+        constraints:
+          - engine.labels.provider == virtualbox
+     
