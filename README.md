@@ -8,7 +8,7 @@ Create two virtual machines with docker-machine
 
 ```bash
 docker-machine create --driver virtualbox --engine-label disk=ssd swarm1
-docker-machine create --driver virtualbox swarm2
+docker-machine create --driver virtualbox --engine-label disk=hdd swarm2
 ```
 
 Log in into the machine and initialize the swarm cluster
@@ -53,4 +53,20 @@ Afterwards scale up a service
 
 ```bash
 docker service scale webapper_webapper=4
+```
+
+## Testing the placement
+
+In order to move a running container to another swarm node
+
+```bash
+docker service update --constraint-add "engine.labels.disk==ssd" [SERVICE_ID]
+```
+
+## Deploying a new release
+
+Note that the update process will be accord to the parallelism option 
+
+```bash
+docker service update --image rchicoli/webapper:0.0.3 [SERVICE_NAME]
 ```
