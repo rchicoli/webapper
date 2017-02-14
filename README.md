@@ -2,7 +2,7 @@
 
 Webapper provides a webserver for testing purposes.
 
-## Preparing the test plataform
+## Preparing a test plataform
 
 Create two virtual machines with docker-machine  
 
