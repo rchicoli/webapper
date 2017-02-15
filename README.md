@@ -47,7 +47,7 @@ INTERNAL_LOAD_BALANCE_IP=$(docker-machine ip swarm1)
 
 while true; do
     curl "http://${INTERNAL_LOAD_BALANCE_IP}:8080/hostname"
-    sleep 3
+    sleep 1
 done
 ```
 
@@ -101,9 +101,21 @@ Afterwards let's create a deployment:
 $ kubectl create -f k8s-deployment.yaml
 ```
 
-### Testing the running pods
+### Testing the load balance
+
+1 . Make couple of requests against the load balance
 
 ```bash
 INTERNAL_LOAD_BALANCE_IP=$(minikube ip)
-curl "http://${INTERNAL_LOAD_BALANCE_IP}:30080/hostname"
+
+while true; do
+    curl "http://${INTERNAL_LOAD_BALANCE_IP}:30080/hostname"
+    sleep 1
+done
+```
+
+### Scaling up an application
+
+```bash
+kubectl scale deployment --replicas 5 webapper
 ```
