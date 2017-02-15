@@ -43,7 +43,7 @@ docker stack deploy --compose-file docker-stack.yml webapper
 Run couple of curl requests and check the responses
 
 ```bash
-INTERNAL_LOAD_BALANCE_IP=$(docker-machine config swarm1| sed -nr 's#-H=tcp://(.*):.*#\1#p')
+INTERNAL_LOAD_BALANCE_IP=$(docker-machine ip swarm1)
 
 while true; do
     curl "http://${INTERNAL_LOAD_BALANCE_IP}:8080/hostname"
@@ -89,14 +89,21 @@ For usability, make sure to load the kubectl completion code for a given shell
 source <(kubectl completion zsh)
 ```
 
-Creating a service:
+The cluster should be up and running, now it is time to start creating a service:
 
 ```bash
 $ kubectl create -f k8s-service.yaml
 ```
 
-Creating a deployment:
+Afterwards let's create a deployment:
 
 ```bash
 $ kubectl create -f k8s-deployment.yaml
+```
+
+### Testing the running pods
+
+```bash
+INTERNAL_LOAD_BALANCE_IP=$(minikube ip)
+curl "http://${INTERNAL_LOAD_BALANCE_IP}:30080/hostname"
 ```
