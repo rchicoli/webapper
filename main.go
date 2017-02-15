@@ -16,6 +16,7 @@ Usage: curl http://127.0.0.1:8080/[endpoint]
 Endpoints:
 
     /            show this message
+	/cowsay      talking cow
     /health      check health status
     /hostname    display hostname
 `
@@ -58,7 +59,7 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	http.HandleFunc("/", endpointHandler)
-	http.HandleFunc("/cow", cowsayHandler)
+	http.HandleFunc("/cowsay", cowsayHandler)
 	http.HandleFunc("/health", healthCheckHandler)
 	http.HandleFunc("/hostname", hostnameHandler)
 
