@@ -2,7 +2,9 @@
 
 Webapper provides a webserver for testing purposes.
 
-## Preparing a test plataform
+## Docker Cluster
+
+### Preparing the test plataform
 
 Create two virtual machines with docker-machine  
 
@@ -27,7 +29,7 @@ docker swarm join \
     192.168.99.100:2377
 ```
 
-## Deploying an application
+### Deploying an application
 
 Go ahead and deploy the first application on the private docker cloud
 
@@ -36,7 +38,7 @@ eval $(docker-machine env swarm1)
 docker stack deploy --compose-file docker-stack.yml webapper
 ```
 
-## Testing the scalibility
+### Testing the scalibility
 
 Run couple of curl requests and check the responses
 
@@ -55,7 +57,7 @@ Afterwards scale up a service
 docker service scale webapper_webapper=4
 ```
 
-## Testing the placement
+### Testing the placement
 
 In order to move a running container to another swarm node
 
@@ -63,10 +65,38 @@ In order to move a running container to another swarm node
 docker service update --constraint-add "engine.labels.disk==ssd" [SERVICE_ID]
 ```
 
-## Deploying a new release
+### Deploying a new release
 
 Note that the update process will be accord to the parallelism option 
 
 ```bash
 docker service update --image rchicoli/webapper:0.0.3 [SERVICE_NAME]
+```
+
+## Kubernetes Cluster
+
+### Setting up locally a single node Kubernetes cluster
+
+To create a kubernetes cluster, run following command:
+
+```bash
+$ minikube start --vm-driver=virtualbox
+```
+
+For usability, make sure to load the kubectl completion code for a given shell
+
+```
+source <(kubectl completion zsh)
+```
+
+Creating a service:
+
+```bash
+$ kubectl create -f k8s-service.yaml
+```
+
+Creating a deployment:
+
+```bash
+$ kubectl create -f k8s-deployment.yaml
 ```
