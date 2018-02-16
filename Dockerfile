@@ -1,5 +1,9 @@
 FROM alpine:3.4
 
+ARG GOOS=linux
+ARG GOARCH=amd64
+ARG GOARM=
+
 ARG APP_NAME
 ENV APP_NAME ${APP_NAME:-webapper}
 
