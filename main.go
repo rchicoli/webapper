@@ -60,7 +60,6 @@ func cowsayHandler(w http.ResponseWriter, r *http.Request) {
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "OK")
-	log.Printf("%s", r.URL.Path)
 }
 
 func logMessage(w http.ResponseWriter, r *http.Request) {
