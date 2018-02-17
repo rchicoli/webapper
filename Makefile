@@ -33,6 +33,7 @@ tag:
 	docker tag $(DOCKER_IMAGE):$(APP_VERSION) $(DOCKER_IMAGE):latest
 
 test:
+	go get -d -v ./...
 	go test -v
 
 release: tag
