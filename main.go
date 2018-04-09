@@ -2,12 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/gorilla/mux"
+	"github.com/streadway/amqp"
 )
 
 const (
@@ -37,8 +40,18 @@ Endpoints:
 `
 )
 
+type RabbitMQ struct {
+	ch *amqp.Channel
+}
+
+type Log struct {
+	Payload Payload
+	RabbitMQ
+}
+
 type Payload struct {
 	Message string `json:"message"`
+	Queue   string `json:"queue"`
 }
 
 func endpointHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,40 +68,95 @@ func hostnameHandler(w http.ResponseWriter, r *http.Request) {
 func cowsayHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", cowsay)
 	log.Printf("%s", r.URL.Path)
-
 }
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "OK")
 }
 
-func logMessage(w http.ResponseWriter, r *http.Request) {
+func (msg *Log) logMessage(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	// b, err := ioutil.ReadAll(r.Body)
+	// err = json.Unmarshal(b, &msg.Payload)
 	decoder := json.NewDecoder(r.Body)
-	defer r.Body.Close()
-
-	var msg Payload
-	err := decoder.Decode(&msg)
+	err := decoder.Decode(&msg.Payload)
 	if err != nil {
+		fmt.Printf("error: %v", err)
 		http.Error(w, "error: reading request body", http.StatusInternalServerError)
 	}
 
-	fmt.Fprint(w, msg.Message)
-	fmt.Println(msg.Message)
+	defer r.Body.Close()
+
+	q, err := msg.ch.QueueDeclare(
+		msg.Payload.Queue, // name
+		false,             // durable
+		false,             // delete when unused
+		false,             // exclusive
+		false,             // no-wait
+		nil,               // arguments
+	)
+	failOnError(err, "Failed to declare a queue")
+
+	err = msg.ch.Publish(
+		"",     // exchange
+		q.Name, // routing key
+		false,  // mandatory
+		false,  // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        []byte(msg.Payload.Message),
+		})
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		http.Error(w, "error: publishing message to rabbitmq", http.StatusInternalServerError)
+	}
+
+	fmt.Fprintf(w, "%q", msg.Payload.Message)
+	fmt.Printf("%q", msg.Payload.Message)
 }
+
+var re = regexp.MustCompile(`(\r\n\s+$)|(\r\n$)|(\n\s+$)|(\n$)`)
 
 func main() {
 
-	router := mux.NewRouter()
+	username := flag.String("username", "guest", "username to authenticate to rabbitmq")
+	password := flag.String("password", "guest", "password to authenticate to rabbitmq")
+	host := flag.String("host", "localhost", "rabbitmq host")
+	port := flag.Int("port", 5672, "port which rabbitmq is listening to")
 
+	flag.Parse()
+
+	m := &Log{
+		Payload: Payload{
+			Queue: "test",
+		},
+	}
+
+	router := mux.NewRouter()
 	router.HandleFunc("/", endpointHandler).Methods("GET")
 	router.HandleFunc("/cowsay", cowsayHandler).Methods("GET")
 	router.HandleFunc("/health", healthCheckHandler).Methods("GET")
 	router.HandleFunc("/hostname", hostnameHandler).Methods("GET")
-	router.HandleFunc("/log", logMessage).Methods("POST")
+	router.HandleFunc("/log", m.logMessage).Methods("POST")
+
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d/", *username, *password, *host, *port))
+	failOnError(err, "Failed to connect to RabbitMQ")
+	defer conn.Close()
+
+	m.ch, err = conn.Channel()
+	failOnError(err, "Failed to open a channel")
+	defer m.ch.Close()
+
+	failOnError(err, "Failed to publish a message")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 
+}
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
 }

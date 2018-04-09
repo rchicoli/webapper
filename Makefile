@@ -11,10 +11,12 @@ WORKDIR 	  = /go/src/app
 all: test binary build
 
 binary:
-	docker run --rm -v $(PWD):$(WORKDIR) -w $(WORKDIR) golang:1.9.2-alpine \
-		apk add --no-cache git; \
-		go get -d -v ./...; \
-		GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -a -installsuffix cgo -o $(APP_NAME) main.go
+	GOOS=linux GOARCH=amd64 GOARM= CGO_ENABLED=0 go build -v -a -installsuffix cgo -o $(APP_NAME)
+	# GOOS=linux GOARCH=amd64 GOARM= go build -ldflags '-extldflags "-static"' -o $(APP_NAME) main.go
+	# docker run --rm -v $(PWD):$(WORKDIR) -w $(WORKDIR) golang:1.9.2-alpine \
+	# 	apk add --no-cache git; \
+	# 	go get -d -v ./...; \
+	# 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -a -installsuffix cgo -o $(APP_NAME) main.go
 		#go build -ldflags '-extldflags "-static"' -o $(APP_NAME) main.go
 
 build:
