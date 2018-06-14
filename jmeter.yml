@@ -1,0 +1,42 @@
+execution:
+  - concurrency: 2
+    ramp-up: 20s
+    hold-for: 40s
+    scenario: quick-test
+
+scenarios:
+  quick-test:
+    requests:
+      - url: http://52.212.250.40:8080/hostname
+        label: hostname
+        method: GET
+      # - url: https://appname.execute-api.eu-west-1.amazonaws.com/v1/hostname
+      #   label: appname
+      #   method: POST
+      #   body:
+      #     firstName: Bob
+      #     lastName: John
+      #   headers:
+      #     Content-Type: application/json
+      #     x-api-key: secret-key
+
+modules:
+  jmeter:
+    properties:
+      # somehow there is no way to get this working properly
+      jmeter.save.saveservice.assertion_results_failure_message: true
+
+services:
+  - module: shellexec
+    post-process:
+    - awk -F',' -v OFS=',' '$7 = $7 FS "failureMessage"' ${TAURUS_ARTIFACTS_DIR}/kpi.jtl > ${TAURUS_ARTIFACTS_DIR}/kpi_awk.csv
+    - ~/.bzt/jmeter-taurus/4.0/bin/jmeter.sh -g ${TAURUS_ARTIFACTS_DIR}/kpi_awk.csv -o ${TAURUS_ARTIFACTS_DIR}/dashboard
+
+# reporting:
+#   - module: passfail
+#     criteria:
+#     - avg-rt>10ms for 7s, stop as failed
+#     - hits of reserve >10 for 13s, continue as failed
+#   - module: junit-xml
+#     filename: ${TAURUS_ARTIFACTS_DIR}/junit.xml
+#     data-source: pass-fail

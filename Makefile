@@ -1,10 +1,10 @@
 
 APP_OWNER     = rchicoli
 APP_NAME      = webapper
-APP_VERSION  ?= latest
+APP_VERSION   ?= latest
 
-DOCKER_IMAGE  = $(APP_OWNER)/$(APP_NAME)
-WORKDIR 	  = /go/src/app
+DOCKER_IMAGE  ?= $(APP_OWNER)/$(APP_NAME)
+WORKDIR		  ?= /go/src/app
 
 .PHONY: all binary build clean release run tag
 
