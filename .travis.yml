@@ -1,7 +1,11 @@
+language: go
+go:
+  - 1.9.2
+
 sudo: required
 
 services:
   - docker
 
 script:
-- make
+  - make
