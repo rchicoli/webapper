@@ -1,11 +1,15 @@
 execution:
-  - concurrency: 2
+  - scenario: get-hostname
+    concurrency: 2
     ramp-up: 20s
     hold-for: 40s
-    scenario: quick-test
+    # distributed:
+    #   - jmeter-slave01.cluster.local
+    # throughput:
+    #   local: null
 
 scenarios:
-  quick-test:
+  get-hostname:
     requests:
       - url: http://52.212.250.40:8080/hostname
         label: hostname
@@ -19,10 +23,33 @@ scenarios:
       #   headers:
       #     Content-Type: application/json
       #     x-api-key: secret-key
+  # csv-200-row:
+  #   data-sources:
+  #    - /tmp/test.csv
+  #   requests:
+  #     - label: test-xml
+  #       url: https://api.local
+  #       method: POST
+  #       body-file: test-ext-request1.xml
+  #       content-encoding: 'UTF-8'
+  #       keepalive: true
+  #       headers:
+  #         Content-Type: 'application/xml'
+
+settings:
+  aggregator: consolidator
+  check-interval: 3
 
 modules:
   jmeter:
+    # class: bzt.modules.jmeter.JMeterExecutor
+    # path: ~/bin/jmeter
+    gui: false
+    # system-properties:
+    #   javax.net.ssl.keyStore: ~/key.jks
+    #   javax.net.ssl.keyStorePassword: secret
     properties:
+      log_level: DEBUG
       # somehow there is no way to get this working properly
       jmeter.save.saveservice.assertion_results_failure_message: true
 
