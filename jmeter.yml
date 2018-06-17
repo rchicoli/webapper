@@ -35,6 +35,24 @@ scenarios:
   #       keepalive: true
   #       headers:
   #         Content-Type: 'application/xml'
+  csv-200-row:
+    data-sources:
+      - /tmp/test.csv
+    requests:
+      - label: test-json
+        url: https://api.local
+        method: POST
+        body:
+          user:
+            id: "${id}"
+            name: "${name}"
+          payload:
+            city: "${city}"
+            street: "${street}"
+        content-encoding: 'UTF-8'
+        keepalive: true
+        headers:
+          Content-Type: 'application/json'
 
 settings:
   aggregator: consolidator
