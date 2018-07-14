@@ -1,5 +1,5 @@
 execution:
-  - scenario: addresses
+  - scenario: usernames
     concurrency: 1
     ramp-up: 30s
     hold-for: 5m
@@ -35,9 +35,9 @@ scenarios:
   #       keepalive: true
   #       headers:
   #         Content-Type: 'application/xml'
-  addresses:
+  usernames:
     data-sources:
-      - /tmp/addresses.csv
+      - /tmp/usernames.csv
     keepalive: true
     use-dns-cache-mgr: true
     # concurrent-pool-size: 4
