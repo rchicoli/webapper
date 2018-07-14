@@ -1,17 +1,17 @@
 execution:
-  - scenario: get-hostname
-    concurrency: 2
-    ramp-up: 20s
-    hold-for: 40s
+  - scenario: addresses
+    concurrency: 1
+    ramp-up: 30s
+    hold-for: 5m
     # distributed:
     #   - jmeter-slave01.cluster.local
-    # throughput:
+    throughput: 1
     #   local: null
 
 scenarios:
   get-hostname:
     requests:
-      - url: http://52.212.250.40:8080/hostname
+      - url: http://122.12.50.4:8080/hostname
         label: hostname
         method: GET
       # - url: https://appname.execute-api.eu-west-1.amazonaws.com/v1/hostname
@@ -35,24 +35,29 @@ scenarios:
   #       keepalive: true
   #       headers:
   #         Content-Type: 'application/xml'
-  csv-200-row:
+  addresses:
     data-sources:
-      - /tmp/test.csv
+      - /tmp/addresses.csv
+    keepalive: true
+    use-dns-cache-mgr: true
+    # concurrent-pool-size: 4
     requests:
-      - label: test-json
-        url: https://api.local
+      - label: logger
+        url: https://api.home.local/logger/v1/message
         method: POST
         body:
-          user:
-            id: "${id}"
-            name: "${name}"
           payload:
-            city: "${city}"
-            street: "${street}"
+            firstName: "${firstName}"
+            lastName: "${lastName}"
+        # assert:
+        #   - contains:
+        #     - .+Virgin America.+
+        #     subject: body
+        #     regexp: true
         content-encoding: 'UTF-8'
-        keepalive: true
         headers:
           Content-Type: 'application/json'
+          x-api-key: 'dGVzdDEyMzR0ZXN0MTIzNDU2Cg==='
 
 settings:
   aggregator: consolidator
