@@ -20,9 +20,13 @@ Usage: curl http://127.0.0.1:8080/[endpoint]
 
 Endpoints:
 
-    /            show this message
-    /health      check health status
-    /hostname    display hostname
+    /           show this message
+    /echo       return the payload sent
+    /headers    display all headers
+    /hostname   display hostname
+    /log        log the message
+    /trace      dump the request
+    /health     check health status
 `
 )
 
