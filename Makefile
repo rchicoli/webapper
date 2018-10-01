@@ -11,7 +11,7 @@ WORKDIR		  ?= /go/src/app
 all: test binary build
 
 binary:
-	docker run --rm -v $(PWD):$(WORKDIR) -w $(WORKDIR) golang:1.9.2-alpine \
+	docker run --rm -v $(PWD):$(WORKDIR) -w $(WORKDIR) golang:1.10-alpine \
 		apk add --no-cache git; \
 		go get -d -v ./...; \
 		GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -a -installsuffix cgo -o $(APP_NAME) main.go
