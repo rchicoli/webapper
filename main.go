@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -20,19 +21,18 @@ Usage: curl http://127.0.0.1:8080/[endpoint]
 
 Endpoints:
 
-    /           show this message
+	/           show this message
+	/jsonp		beautify json object
+	/raw		post raw request
+	/trace		trace the request
     /echo       return the payload sent
     /headers    display all headers
+    /health     check health status
     /hostname   display hostname
     /log        log the message
     /trace      dump the request
-    /health     check health status
 `
 )
-
-type Payload struct {
-	Message string `json:"message"`
-}
 
 func echoHandler(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, r.Body)
@@ -41,6 +41,17 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 func endpointHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", usage)
 	log.Printf("%s", r.URL.Path)
+}
+func rawHandler(w http.ResponseWriter, r *http.Request) {
+
+	b, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		http.Error(w, "error: reading request body", http.StatusInternalServerError)
+	}
+
+	fmt.Fprintf(w, "%s", b)
+	log.Printf("%s", b)
 }
 
 func headersHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,21 +70,25 @@ func hostnameHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s", r.URL.Path)
 }
 
-func logHandler(w http.ResponseWriter, r *http.Request) {
+func jsonPrettyPrintHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	decoder := json.NewDecoder(r.Body)
+	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
-
-	var msg Payload
-	err := decoder.Decode(&msg)
 	if err != nil {
 		http.Error(w, "error: reading request body", http.StatusInternalServerError)
 	}
 
-	fmt.Fprint(w, msg.Message)
-	fmt.Println(msg.Message)
+	var jsonObject interface{}
+	json.Unmarshal(b, &jsonObject)
+	jsonPretty, err := json.MarshalIndent(jsonObject, "", "  ")
+	if err != nil {
+		http.Error(w, "error: reading request body", http.StatusInternalServerError)
+	}
+
+	fmt.Fprintf(w, "%s", jsonPretty)
+	log.Printf("%s", jsonPretty)
 }
 
 func traceHandler(w http.ResponseWriter, req *http.Request) {
@@ -94,7 +109,9 @@ func main() {
 	router.HandleFunc("/headers", headersHandler).Methods("GET")
 	router.HandleFunc("/health", healthCheckHandler).Methods("GET")
 	router.HandleFunc("/hostname", hostnameHandler).Methods("GET")
-	router.HandleFunc("/log", logHandler).Methods("POST")
+	router.HandleFunc("/jsonp", jsonPrettyPrintHandler).Methods("POST")
+	router.HandleFunc("/log", rawHandler).Methods("POST")
+	router.HandleFunc("/raw", rawHandler).Methods("POST")
 	router.HandleFunc("/trace", traceHandler).Methods("GET", "POST")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
