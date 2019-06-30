@@ -71,11 +71,14 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
           timeoutSeconds: 1
+          failureThreshold: 3
         securityContext:
+          # allowPrivilegeEscalation: false
           privileged: false
           readOnlyRootFilesystem: true
           runAsUser: 10000
           runAsGroup: 10000
+          runAsNonRoot: true
           capabilities:
             drop:
             - all
