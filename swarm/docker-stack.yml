@@ -1,4 +1,4 @@
-version: '3'                                                                                                                          
+version: '3'
 services:
   webapper:
     image: rchicoli/webapper:0.0.1
@@ -6,7 +6,7 @@ services:
       - '8080:8080'
     deploy:
       replicas: 2
-      labels: 
+      labels:
         local.home.app: webapper
       update_config:
         parallelism: 1
@@ -26,4 +26,3 @@ services:
       placement:
         constraints:
           - engine.labels.provider == virtualbox
-     
