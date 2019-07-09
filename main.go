@@ -26,10 +26,10 @@ Usage: curl http://127.0.0.1:8080/[endpoint]
 
 Endpoints:
 
-	/           show this message
-	/jsonp		beautify json object
-	/raw		post raw request
-	/trace		trace the request
+    /           show this message
+    /jsonp      beautify json object
+    /raw        post raw request
+    /trace        trace the request
     /echo       return the payload sent
     /headers    display all headers
     /health     check health status
@@ -47,6 +47,7 @@ func endpointHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", usage)
 	stdlog.Printf(r.URL.Path)
 }
+
 func rawHandler(w http.ResponseWriter, r *http.Request) {
 
 	b, err := ioutil.ReadAll(r.Body)
