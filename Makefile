@@ -6,18 +6,12 @@ APP_VERSION   ?= latest
 DOCKER_IMAGE  ?= $(APP_OWNER)/$(APP_NAME)
 WORKDIR		  ?= /go/src/app
 
-.PHONY: all binary build clean release run tag
+.PHONY: all build clean release run tag
 
-all: test binary build
+all: test build
 
-binary:
-	docker run --rm -v $(PWD):$(WORKDIR) -w $(WORKDIR) golang:1.11-alpine \
-		apk add --no-cache git; \
-		go get -d -v ./...; \
-		GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -a -installsuffix cgo -o $(APP_NAME) main.go
-		#go build -ldflags '-extldflags "-static"' -o $(APP_NAME) main.go
 
-build: binary
+build:
 	docker build --rm --build-arg APP_NAME=$(APP_NAME) -t $(DOCKER_IMAGE):$(APP_VERSION) .
 
 run:
