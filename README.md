@@ -2,6 +2,17 @@
 
 Webapper provides a webserver for testing purposes.
 
+
+## TODO: create new apis
+
+/metrics
+/ping
+/trace
+/nslookup
+/rabbitmq
+/couchbase
+
+
 ## Docker Cluster
 
 ### Preparing the test plataform
