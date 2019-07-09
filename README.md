@@ -2,22 +2,11 @@
 
 Webapper provides a webserver for testing purposes.
 
-
-## TODO: create new apis
-
-/metrics
-/ping
-/trace
-/nslookup
-/rabbitmq
-/couchbase
-
-
 ## Docker Cluster
 
 ### Preparing the test plataform
 
-Create two virtual machines with docker-machine  
+Create two virtual machines with docker-machine
 
 ```bash
 docker-machine create --driver virtualbox --engine-label disk=ssd swarm1
