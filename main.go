@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rchicoli/webapper/log"
 
 	"github.com/gorilla/mux"
@@ -27,15 +28,16 @@ Usage: curl http://127.0.0.1:8080/[endpoint]
 Endpoints:
 
     /           show this message
-    /jsonp      beautify json object
-    /raw        post raw request
-    /trace        trace the request
     /echo       return the payload sent
     /headers    display all headers
     /health     check health status
     /hostname   display hostname
+    /jsonp      beautify json object
     /log        log the message
+    /metrics    prometheus metrics
+    /raw        post raw request
     /trace      dump the request
+    /trace      trace the request
 `
 )
 
@@ -98,6 +100,10 @@ func jsonPrettyPrintHandler(w http.ResponseWriter, r *http.Request) {
 	stdlog.Printf("%s", jsonPretty)
 }
 
+func metricsHandler(w http.ResponseWriter, r *http.Request) {
+	promhttp.Handler().ServeHTTP(w, r)
+}
+
 func traceHandler(w http.ResponseWriter, req *http.Request) {
 	requestDump, err := httputil.DumpRequest(req, true)
 	if err != nil {
@@ -118,6 +124,7 @@ func main() {
 	router.HandleFunc("/hostname", log.Decorate(hostnameHandler)).Methods("GET")
 	router.HandleFunc("/jsonp", log.Decorate(jsonPrettyPrintHandler)).Methods("POST")
 	router.HandleFunc("/log", log.Decorate(rawHandler)).Methods("POST")
+	router.HandleFunc("/metrics", log.Decorate(metricsHandler)).Methods("GET")
 	router.HandleFunc("/raw", log.Decorate(rawHandler)).Methods("POST")
 	router.HandleFunc("/trace", log.Decorate(traceHandler)).Methods("GET", "POST")
 
