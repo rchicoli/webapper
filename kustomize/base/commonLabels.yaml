@@ -1,0 +1,18 @@
+---
+commonLabels:
+- path: metadata/labels
+  create: true
+
+- path: spec/selector
+  create: true
+  version: v1
+  kind: Service
+
+- path: spec/selector/matchLabels
+  create: true
+  kind: Deployment
+
+- path: spec/template/spec/affinity/podAntiAffinity/requiredDuringSchedulingIgnoredDuringExecution/labelSelector/matchLabels
+  create: false
+  group: apps
+  kind: Deployment
