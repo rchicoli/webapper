@@ -73,7 +73,7 @@ spec:
           timeoutSeconds: 1
           failureThreshold: 3
         securityContext:
-          # allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: false
           privileged: false
           readOnlyRootFilesystem: true
           runAsUser: 10000
