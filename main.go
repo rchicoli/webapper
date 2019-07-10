@@ -37,7 +37,6 @@ Endpoints:
     /metrics    prometheus metrics
     /raw        post raw request
     /trace      dump the request
-    /trace      trace the request
 `
 )
 
