@@ -71,7 +71,7 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 
 func hostnameHandler(w http.ResponseWriter, r *http.Request) {
 	hostname, err := os.Hostname()
-	if err == nil {
+	if err != nil {
 		log.Printf(r.Context(), "error: retrieving hostname")
 		io.WriteString(w, err.Error())
 		return
