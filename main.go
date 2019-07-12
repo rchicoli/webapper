@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	stdlog "log"
 	"net/http"
 	"net/http/httputil"
 	"os"
 	"os/signal"
+	"sync/atomic"
 	"syscall"
+
+	stdlog "log"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rchicoli/webapper/log"
@@ -40,25 +41,18 @@ Endpoints:
 `
 )
 
+var (
+	healthy int32
+)
+
+func rawHandler(w http.ResponseWriter, r *http.Request) {}
+
 func echoHandler(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, r.Body)
 }
 
 func endpointHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", usage)
-	stdlog.Printf(r.URL.Path)
-}
-
-func rawHandler(w http.ResponseWriter, r *http.Request) {
-
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		http.Error(w, "error: reading request body", http.StatusInternalServerError)
-	}
-
-	fmt.Fprintf(w, "%s", b)
-	stdlog.Printf("%s", b)
 }
 
 func headersHandler(w http.ResponseWriter, r *http.Request) {
@@ -68,35 +62,39 @@ func headersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "OK")
+	if atomic.LoadInt32(&healthy) == 1 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	w.WriteHeader(http.StatusServiceUnavailable)
 }
 
 func hostnameHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	hostname, _ := os.Hostname()
-	fmt.Fprintf(w, "Hostname: %s\n", hostname)
-	log.Printf(ctx, fmt.Sprintf("[context] %p: %s", ctx, r.URL.Path))
+	hostname, err := os.Hostname()
+	if err == nil {
+		log.Printf(r.Context(), "error: retrieving hostname")
+		io.WriteString(w, err.Error())
+		return
+	}
+	fmt.Fprintf(w, "hostname: %s\n", hostname)
 }
 
 func jsonPrettyPrintHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
+	var input interface{}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil && err != io.EOF {
 		http.Error(w, "error: reading request body", http.StatusInternalServerError)
+		return
 	}
 
-	var jsonObject interface{}
-	json.Unmarshal(b, &jsonObject)
-	jsonPretty, err := json.MarshalIndent(jsonObject, "", "  ")
+	jsonP, err := json.MarshalIndent(input, "", "  ")
 	if err != nil {
-		http.Error(w, "error: reading request body", http.StatusInternalServerError)
+		http.Error(w, "error: marshaling json", http.StatusInternalServerError)
 	}
 
-	fmt.Fprintf(w, "%s", jsonPretty)
-	stdlog.Printf("%s", jsonPretty)
+	fmt.Fprintf(w, "%s", jsonP)
 }
 
 func metricsHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,10 +104,10 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) {
 func traceHandler(w http.ResponseWriter, req *http.Request) {
 	requestDump, err := httputil.DumpRequest(req, true)
 	if err != nil {
-		fmt.Fprint(w, err.Error())
-	} else {
-		fmt.Fprint(w, string(requestDump))
+		io.WriteString(w, err.Error())
+		return
 	}
+	w.Write(requestDump)
 }
 
 func main() {
@@ -122,7 +120,6 @@ func main() {
 	router.HandleFunc("/health", log.Decorate(healthCheckHandler)).Methods("GET")
 	router.HandleFunc("/hostname", log.Decorate(hostnameHandler)).Methods("GET")
 	router.HandleFunc("/jsonp", log.Decorate(jsonPrettyPrintHandler)).Methods("POST")
-	router.HandleFunc("/log", log.Decorate(rawHandler)).Methods("POST")
 	router.HandleFunc("/metrics", log.Decorate(metricsHandler)).Methods("GET")
 	router.HandleFunc("/raw", log.Decorate(rawHandler)).Methods("POST")
 	router.HandleFunc("/trace", log.Decorate(traceHandler)).Methods("GET", "POST")
@@ -139,6 +136,7 @@ func main() {
 		signal.Notify(sigint, syscall.SIGTERM)
 
 		<-sigint
+		atomic.StoreInt32(&healthy, 0)
 
 		// We received an interrupt signal, shut down.
 		if err := srv.Shutdown(context.Background()); err != nil {
@@ -150,6 +148,7 @@ func main() {
 		close(idleConnsClosed)
 	}()
 
+	atomic.StoreInt32(&healthy, 1)
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		// Error starting or closing listener:
 		stdlog.Fatalf("HTTP server ListenAndServe: %v\n", err)
