@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -78,6 +79,17 @@ func hostnameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "hostname: %s\n", hostname)
 }
+func ipHandler(w http.ResponseWriter, r *http.Request) {
+	resp, err := http.Get("https://icanhazip.com")
+	if err != nil {
+		log.Printf(r.Context(), "error: retrieving ip address")
+		io.WriteString(w, err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	fmt.Fprintf(w, "ip: %s\n", string(body))
+}
 
 func jsonPrettyPrintHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -118,6 +130,7 @@ func main() {
 	router.HandleFunc("/echo", log.Decorate(echoHandler)).Methods("GET", "POST")
 	router.HandleFunc("/headers", log.Decorate(headersHandler)).Methods("GET")
 	router.HandleFunc("/health", log.Decorate(healthCheckHandler)).Methods("GET")
+	router.HandleFunc("/ip", log.Decorate(ipHandler)).Methods("GET")
 	router.HandleFunc("/hostname", log.Decorate(hostnameHandler)).Methods("GET")
 	router.HandleFunc("/jsonp", log.Decorate(jsonPrettyPrintHandler)).Methods("POST")
 	router.HandleFunc("/metrics", log.Decorate(metricsHandler)).Methods("GET")
