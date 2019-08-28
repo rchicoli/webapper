@@ -17,6 +17,9 @@ resources:
 configurations:
 - commonLabels.yaml
 
+commonAnnotations:
+  oncallPager: 800-555-1212
+
 commonLabels:
   app.kubernetes.io/maintainer: rchicoli
   app.kubernetes.io/managed-by: kustomize
