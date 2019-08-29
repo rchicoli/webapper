@@ -79,6 +79,7 @@ func hostnameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "hostname: %s\n", hostname)
 }
+
 func ipHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.Get("https://icanhazip.com")
 	if err != nil {
@@ -130,6 +131,10 @@ func main() {
 	router.HandleFunc("/echo", log.Decorate(echoHandler)).Methods("GET", "POST")
 	router.HandleFunc("/headers", log.Decorate(headersHandler)).Methods("GET")
 	router.HandleFunc("/health", log.Decorate(healthCheckHandler)).Methods("GET")
+
+	router.HandleFunc("/livez", log.Decorate(healthCheckHandler)).Methods("GET")
+	router.HandleFunc("/healthz", log.Decorate(healthCheckHandler)).Methods("GET")
+
 	router.HandleFunc("/ip", log.Decorate(ipHandler)).Methods("GET")
 	router.HandleFunc("/hostname", log.Decorate(hostnameHandler)).Methods("GET")
 	router.HandleFunc("/jsonp", log.Decorate(jsonPrettyPrintHandler)).Methods("POST")

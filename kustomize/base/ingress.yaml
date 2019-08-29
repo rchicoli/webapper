@@ -8,7 +8,7 @@ metadata:
   name: webapper
 spec:
   rules:
-  - host: webapper.shared.home.local
+  - host: placeholder.k8s.local
     http:
       paths:
       - backend:

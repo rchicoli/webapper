@@ -1,30 +1,23 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 namespace: non-existent
-
-images:
-- name: rchicoli/webapper
-  newTag: 1.1.2
-
-resources:
-- service.yaml
-- ingress.yaml
-- poddisruptionbudget.yaml
-- deployment.yaml
-
-configurations:
-- commonLabels.yaml
-
 commonAnnotations:
   oncallPager: 800-555-1212
-
 commonLabels:
   app.kubernetes.io/maintainer: rchicoli
   app.kubernetes.io/managed-by: kustomize
   app.kubernetes.io/name: webapper
   app.kubernetes.io/part-of: operations
-
+resources:
+- service.yaml
+- ingress.yaml
+- poddisruptionbudget.yaml
+- deployment.yaml
+images:
+- name: rchicoli/webapper
+  newTag: 1.1.2
+configurations:
+- commonLabels.yaml
 generatorOptions:
   disableNameSuffixHash: true
