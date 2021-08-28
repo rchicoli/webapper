@@ -1,0 +1,15 @@
+---
+kind: Gateway
+apiVersion: networking.istio.io/v1alpha3
+metadata:
+  name: webapper-gateway
+spec:
+  servers:
+    - hosts:
+        - '*'
+      port:
+        name: http
+        number: 80
+        protocol: HTTP
+  selector:
+    istio: ingressgateway
