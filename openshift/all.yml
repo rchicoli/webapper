@@ -2,6 +2,10 @@
 apiVersion: v1
 kind: Namespace
 metadata:
+  annotations:
+    openshift.io/sa.scc.mcs: s0:c26,c5
+    openshift.io/sa.scc.supplemental-groups: 1000660000/10000
+    openshift.io/sa.scc.uid-range: 1000660000/10000
   labels:
     kubernetes.io/metadata.name: webapper
   name: webapper
@@ -84,8 +88,8 @@ spec:
           allowPrivilegeEscalation: false
           privileged: false
           readOnlyRootFilesystem: true
-          runAsUser: 1000710000
-          runAsGroup: 1000710000
+          runAsUser: 1000660000
+          runAsGroup: 1000660000
           runAsNonRoot: true
           capabilities:
             drop:
