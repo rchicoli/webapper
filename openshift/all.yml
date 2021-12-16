@@ -1,0 +1,135 @@
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: webapper
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app: webapper
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: webapper
+    app.kubernetes.io/name: webapper
+  name: webapper
+spec:
+  progressDeadlineSeconds: 300
+  replicas: 1
+  revisionHistoryLimit: 2
+  # minAvailable: 50%
+  selector:
+    matchLabels:
+      app: webapper
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: 'true'
+      labels:
+        app: webapper
+    spec:
+      containers:
+      - name: webapper
+        image: rchicoli/webapper:1.0.3
+        imagePullPolicy: Always
+        ports:
+        - name: webservice
+          containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            memory: 120Mi
+            cpu: 250m
+          limits:
+            memory: 150Mi
+            cpu: 500m
+        livenessProbe:
+          httpGet:
+            path: /hostname
+            port: 8080
+            httpHeaders:
+            - name: X-Custom-Health
+              value: kubernetes
+          initialDelaySeconds: 5
+          periodSeconds: 2
+          timeoutSeconds: 2
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            httpHeaders:
+            - name: X-Custom-Health
+              value: kubernetes
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsUser: 1000710000
+          runAsGroup: 1000710000
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - all
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - webapper
+            topologyKey: "kubernetes.io/hostname"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: 'true'
+  labels:
+    app: webapper
+  name: webapper
+spec:
+  ports:
+  - name: webservice
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
+  selector:
+    app: webapper
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/host.generated: "true"
+  labels:
+    app: webapper
+  name: webapper
+  namespace: webapper
+spec:
+  host: webapper.apps-crc.testing
+  port:
+    targetPort: webservice
+  to:
+    kind: Service
+    name: webapper
+    weight: 100
+  wildcardPolicy: None
