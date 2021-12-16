@@ -1,0 +1,15 @@
+---
+kind: DestinationRule
+apiVersion: networking.istio.io/v1alpha3
+metadata:
+  name: webapper
+  namespace: default
+spec:
+  host: webapper
+  subsets:
+    - labels:
+        version: 1.0.2
+      name: v2
+    - labels:
+        version: 1.0.3
+      name: v3

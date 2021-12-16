@@ -1,0 +1,39 @@
+kind: VirtualService
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  name: webapper
+  namespace: default
+spec:
+  hosts:
+    - '*'
+  gateways:
+    - webapper-gateway
+  http:
+    - match:
+      - uri:
+          exact: /webapper
+      rewrite:
+        uri: /
+      route:
+      - destination:
+          host: webapper
+          subset: v2
+        weight: 75
+      - destination:
+          host: webapper
+          subset: v3
+        weight: 25
+    - match:
+      - uri:
+          exact: /webapper/hostname
+      rewrite:
+        uri: /hostname
+      route:
+      - destination:
+          host: webapper
+          subset: v2
+        weight: 75
+      - destination:
+          host: webapper
+          subset: v3
+        weight: 25

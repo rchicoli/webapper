@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webapper
+    version: 1.0.2
+  name: webapper-v2
+spec:
+  progressDeadlineSeconds: 300
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: webapper
+      version: 1.0.2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: 'true'
+      labels:
+        app: webapper
+        version: 1.0.2
+    spec:
+      containers:
+      - name: webapper
+        image: rchicoli/webapper:1.0.2
+        imagePullPolicy: Always
+        ports:
+        - name: webservice
+          containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            memory: 120Mi
+            cpu: 250m
+          limits:
+            memory: 150Mi
+            cpu: 500m
+        livenessProbe:
+          httpGet:
+            path: /hostname
+            port: 8080
+            httpHeaders:
+            - name: X-Custom-Health
+              value: kubernetes
+          initialDelaySeconds: 5
+          periodSeconds: 2
+          timeoutSeconds: 2
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            httpHeaders:
+            - name: X-Custom-Health
+              value: kubernetes
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsUser: 10000
+          runAsGroup: 10000
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - all
