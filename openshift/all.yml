@@ -1,4 +1,11 @@
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: webapper
+  name: webapper
+---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
